@@ -3,10 +3,13 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 	"time"
+)
+
+const (
+	token = "mytoken"
 )
 
 type Options struct {
@@ -64,17 +67,52 @@ func (o *Options) Request() ([]byte, error) {
 
 }
 
-func main() {
+func GetMethodsPayments() error {
+	h := map[string]string{
 
-	h := map[string]string{}
-
-	opt := NewOptions("GET", "https://www.google.com.br", "", 1000, h)
-
-	d, err := opt.Request()
-	if err != nil {
-		log.Println(err)
+		"accept":        "application/json",
+		"content-type":  "application/json",
+		"Authorization": `"Bearer ` + token + `"`,
 	}
 
-	fmt.Println(string(d))
+	opt := NewOptions("GET", "https://api.mercadopago.com/v1/payment_methods", "", 3000, h)
+
+	data, err := opt.Request()
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(data))
+
+	return nil
+
+}
+
+func CreatePix(amount int, desc string) error {
+	h := map[string]string{
+		"accept":        "application/json",
+		"content-type":  "application/json",
+		"Authorization": `"Bearer ` + token + `"`,
+	}
+
+	exp := time.Now().Add(time.Hour / 2).Format("2006-01-02T15:04:05.000-04:00")
+
+	body := fmt.Sprintf(`"transaction_amount":"%v","description": "%s","payment_method_id": "pix", "date_of_expiration": "%s",`, amount, desc, exp)
+
+	opt := NewOptions("POST", "https://api.mercadopago.com/v1/payments", body, 0, h)
+
+	data, err := opt.Request()
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(data))
+
+	return nil
+}
+
+func main() {
+
+	fmt.Println(time.Now().Add(time.Second * 1800).Format("2006-01-02T15:04:05.000-04:00"))
 
 }
