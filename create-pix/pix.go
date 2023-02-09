@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
+
+	//	"os"
 	"time"
 
 	"github.com/gothello/go-pix-mercado-pago/request"
@@ -12,7 +13,7 @@ import (
 
 var (
 	BASE_URL   = "https://api.mercadopago.com"
-	SECRET_KEY = os.Getenv("SECRET_KEY")
+	SECRET_KEY = "APP_USR-6812762136376103-020807-d1f289344c1a03ccb01f6c75801acd7a-811772071"
 )
 
 func (p *InputPix) CreatePix() (*OutputPix, error) {
@@ -60,6 +61,7 @@ func (p *InputPix) CreatePix() (*OutputPix, error) {
 		IDExternalTransaction: dt.ID,
 		CreateAt:              dt.DateCreated,
 		ExpiresAt:             dt.DateOfExpiration,
+		Status:                dt.Status,
 		Type:                  dt.PaymentMethod.ID,
 		Amount:                p.Amount,
 		Ticket:                dt.PointOfInteraction.TransactionData.TicketURL,
@@ -93,13 +95,14 @@ func (p *OutputPix) CancelPix() (string, error) {
 	}
 
 	if rm.Status == "cancelled" {
+		p.Status = rm.Status
 		return fmt.Sprintf("client id %v cancelled transaction payment %v", p.ID, rm.ID), nil
 	}
 
 	return "", errors.New("error in cancel transaction")
 }
 
-func (p *OutputPix) RefundPix() (string, error) {
+func (p *OutputPix) RefundPix() error {
 
 	h := map[string]string{
 		"Authorization": "Bearer " + SECRET_KEY,
@@ -114,18 +117,19 @@ func (p *OutputPix) RefundPix() (string, error) {
 
 	resp := opt.Request()
 	if resp.Err != nil {
-		return "", resp.Err
+		return resp.Err
 	}
 
 	var rr RefundData
 
 	if err := json.Unmarshal(resp.Body, &rr); err != nil {
-		return "", err
+		return err
 	}
 
-	if rr.Status == "" {
-		return fmt.Sprintf("client id:%v\nrefund:%v\npayment_id:%v", p.ID, rr.PaymentID, rr.AmountRefundedToPayer), nil
+	if rr.Status == "approved" {
+		p.Status = "payment refund"
+		return nil
 	}
 
-	return "", errors.New("error in refund transaction")
+	return errors.New("error in refund transaction")
 }

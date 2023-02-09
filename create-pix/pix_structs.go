@@ -20,6 +20,7 @@ type OutputPix struct {
 	IDExternalTransaction int64
 	CreateAt              string
 	ExpiresAt             string
+	Status                string
 	Type                  string
 	Amount                float64
 	Ticket                string

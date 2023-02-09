@@ -5,9 +5,7 @@ FROM golang as buildando
 
 WORKDIR /app
 
-ADD . /app
-
-RUN go build -o gopix
+CMD [ "tail", "-f", "/dev/null" ]
 
 
 

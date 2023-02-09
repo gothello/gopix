@@ -1,10 +1,14 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
+	"time"
 
+	_ "github.com/go-sql-driver/mysql"
 	pix "github.com/gothello/go-pix-mercado-pago/create-pix"
+	"github.com/gothello/go-pix-mercado-pago/create-pix/service"
 	"github.com/gothello/go-pix-mercado-pago/request"
 )
 
@@ -31,33 +35,44 @@ func GetMethodsPayments() error {
 
 func main() {
 
-	// p := pix.NewPix(1, "Pagamento dos Serviços", time.Minute*10, "http://google.com.br", "wpsolucoes@gmail.com")
-
-	// output, err := p.CreatePix()
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
-
-	// fmt.Printf("%#v\n", output)
-
-	o := pix.OutputPix{
-		IDExternalTransaction: 54514338755,
-	}
-
-	// ok, err := o.CancelPix()
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
-
-	// fmt.Printf("%v\n", ok)
-
-	ok, err := o.RefundPix()
+	//open db
+	db, err := sql.Open("mysql", "root:root@tcp(172.17.0.1:3306)/orders")
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	fmt.Printf("%v\n", ok)
+	//return new type service
+	//type service.Service implement function insert and get
+	service := service.NewService(db)
 
-	// // e, _ := time.Parse("08/02/2023T14:57", "2023-02-08T14:57:22.931-04:00")
-	// fmt.Println(e)
+	//create type pix
+	p := pix.NewPix(1, "Pagamento dos Serviços", time.Minute*10, "http://google.com.br", "wpsolucoes@gmail.com")
+
+	//create transaction pix
+	output, err := p.CreatePix()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	//save in mysql
+	if err := service.Insert(output); err != nil {
+		log.Fatalln(err)
+	}
+
+	//get by id transaction
+	idPayment := 54530435785
+
+	transaction, err := service.GetByIdPayment(int64(idPayment))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	//refund payer
+	err = transaction.RefundPix()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	//print response json
+	fmt.Printf(transaction.Status)
 }
