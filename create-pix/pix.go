@@ -8,6 +8,8 @@ import (
 	//	"os"
 	"time"
 
+	//	"github.com/gothello/go-pix-mercado-pago/create-pix/service"
+
 	"github.com/gothello/go-pix-mercado-pago/request"
 )
 
@@ -50,6 +52,8 @@ func (p *InputPix) CreatePix() (*OutputPix, error) {
 		return nil, r.Err
 	}
 
+	//	fmt.Printf("%#v", string(r.Body))
+
 	var dt ResponseMP
 
 	if err := json.Unmarshal(r.Body, &dt); err != nil {
@@ -70,7 +74,7 @@ func (p *InputPix) CreatePix() (*OutputPix, error) {
 	}, nil
 }
 
-func (p *OutputPix) CancelPix() (string, error) {
+func (p *OutputPix) CancelPix() error {
 
 	h := map[string]string{
 		"Authorization": "Bearer " + SECRET_KEY,
@@ -85,21 +89,21 @@ func (p *OutputPix) CancelPix() (string, error) {
 
 	resp := opt.Request()
 	if resp.Err != nil {
-		return "", resp.Err
+		return resp.Err
 	}
 
 	var rm ResponseMP
 
 	if err := json.Unmarshal(resp.Body, &rm); err != nil {
-		return "", err
+		return err
 	}
 
 	if rm.Status == "cancelled" {
 		p.Status = rm.Status
-		return fmt.Sprintf("client id %v cancelled transaction payment %v", p.ID, rm.ID), nil
+		return nil
 	}
 
-	return "", errors.New("error in cancel transaction")
+	return errors.New("error in cancel transaction")
 }
 
 func (p *OutputPix) RefundPix() error {

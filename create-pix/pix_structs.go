@@ -57,7 +57,7 @@ type RefundData struct {
 	Status                string        `json:"status"`
 	Reason                interface{}   `json:"reason"`
 	Labels                []interface{} `json:"labels"`
-	AmountRefundedToPayer int           `json:"amount_refunded_to_payer"`
+	AmountRefundedToPayer float64       `json:"amount_refunded_to_payer"`
 	AdditionalData        interface{}   `json:"additional_data"`
 	PartitionDetails      []interface{} `json:"partition_details"`
 }
@@ -126,9 +126,9 @@ type ResponseMP struct {
 	Order struct {
 	} `json:"order"`
 	ExternalReference         interface{} `json:"external_reference"`
-	TransactionAmount         int         `json:"transaction_amount"`
-	TransactionAmountRefunded int         `json:"transaction_amount_refunded"`
-	CouponAmount              int         `json:"coupon_amount"`
+	TransactionAmount         float64     `json:"transaction_amount"`
+	TransactionAmountRefunded float64     `json:"transaction_amount_refunded"`
+	CouponAmount              float64     `json:"coupon_amount"`
 	DifferentialPricingID     interface{} `json:"differential_pricing_id"`
 	FinancingGroup            interface{} `json:"financing_group"`
 	DeductionSchema           interface{} `json:"deduction_schema"`
@@ -137,10 +137,10 @@ type ResponseMP struct {
 	TransactionDetails        struct {
 		PaymentMethodReferenceID interface{} `json:"payment_method_reference_id"`
 		NetReceivedAmount        int         `json:"net_received_amount"`
-		TotalPaidAmount          int         `json:"total_paid_amount"`
-		OverpaidAmount           int         `json:"overpaid_amount"`
+		TotalPaidAmount          float64     `json:"total_paid_amount"`
+		OverpaidAmount           float64     `json:"overpaid_amount"`
 		ExternalResourceURL      interface{} `json:"external_resource_url"`
-		InstallmentAmount        int         `json:"installment_amount"`
+		InstallmentAmount        float64     `json:"installment_amount"`
 		FinancialInstitution     interface{} `json:"financial_institution"`
 		PayableDeferralPeriod    interface{} `json:"payable_deferral_period"`
 		AcquirerReference        interface{} `json:"acquirer_reference"`
@@ -161,7 +161,7 @@ type ResponseMP struct {
 		LastUpdated string `json:"last_updated"`
 		Amounts     struct {
 			Original float64 `json:"original"`
-			Refunded int     `json:"refunded"`
+			Refunded float64 `json:"refunded"`
 		} `json:"amounts"`
 		Metadata struct {
 		} `json:"metadata"`
