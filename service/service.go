@@ -17,8 +17,8 @@ func NewServiceMySql(db *sql.DB) *ServiceMySql {
 	}
 }
 
-type ServiceUseCase interface {
-	Insert(*pix.OutputPix)
+type PixRepositoryUseCase interface {
+	Insert(*pix.OutputPix) error
 	GetByIdPayment(int64) (*pix.OutputPix, error)
 	GetAll() ([]*pix.OutputPix, error)
 	Update(*pix.OutputPix) error
@@ -26,7 +26,7 @@ type ServiceUseCase interface {
 
 func (s *ServiceMySql) Insert(p *pix.OutputPix) error {
 
-	_, err := s.DB.Exec("INSERT into pix4(id, id_payment, created_at, expires_at, status, type, amount, ticket, qrcode, qrcodebase) values (?,?,?,?,?,?,?,?,?)", p.ID, p.IDExternalTransaction, p.CreateAt, p.ExpiresAt, p.Status, p.Type, p.Amount, p.Ticket, p.QrCode, p.QrCodeBase64)
+	_, err := s.DB.Exec("INSERT into datapix(id, id_pay, created_at, expires_at, status, type, amount, ticket, qrcode, qrcodebase) values (?,?,?,?,?,?,?,?,?,?)", p.ID, p.IDExternalTransaction, p.CreateAt, p.ExpiresAt, p.Status, p.Type, p.Amount, p.Ticket, p.QrCode, p.QrCodeBase64)
 	if err != nil {
 		return err
 	}
@@ -35,7 +35,7 @@ func (s *ServiceMySql) Insert(p *pix.OutputPix) error {
 }
 
 func (s *ServiceMySql) GetByIdPayment(id int64) (*pix.OutputPix, error) {
-	rows, err := s.DB.Prepare("select id, id_payment, created_at, expires_at ,status, type, amount, ticket, qrcode, qrcodebase from pix4 where id_payment = ?")
+	rows, err := s.DB.Prepare("select id, id_pay, created_at, expires_at ,status, type, amount, ticket, qrcode, qrcodebase from datapix where id_pay = ?")
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (s *ServiceMySql) GetByIdPayment(id int64) (*pix.OutputPix, error) {
 }
 
 func (s *ServiceMySql) GetAll() ([]*pix.OutputPix, error) {
-	rows, err := s.DB.Query("select * from pix4")
+	rows, err := s.DB.Query("select id, id_pay, created_at, expires_at ,status, type, amount, ticket, qrcode, qrcodebase from datapix")
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (s *ServiceMySql) GetAll() ([]*pix.OutputPix, error) {
 }
 
 func (s *ServiceMySql) Update(p *pix.OutputPix) error {
-	stmt, err := s.DB.Prepare("update pix4 set id=?, id_payment=?, created_at=?, expires_at=? ,status=?, type=?, amount=?, ticket=?, qrcode=?, qrcodebase=? from pix4 where id=? ")
+	stmt, err := s.DB.Prepare("update datapix set id=?, id_pay=?, created_at=?, expires_at=? ,status=?, type=?, amount=?, ticket=?, qrcode=?, qrcodebase=? where id=?")
 	if err != nil {
 		return err
 	}
