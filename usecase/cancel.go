@@ -30,6 +30,10 @@ func (u CancelUseCase) Execute(IDpay int64) (*OutputCancel, error) {
 		return nil, err
 	}
 
+	if err := u.PixRepositoryUseCase.Update(o); err != nil {
+		return nil, err
+	}
+
 	return &OutputCancel{
 		ID:     o.ID,
 		IdPay:  o.IDExternalTransaction,

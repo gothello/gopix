@@ -7,8 +7,8 @@ services:
      - 3000:3000
     volumes: 
       - .:/app/
-#    extra_hosts:
- #     - "host.docker.internal:172.17.0.1"
+    extra_hosts:
+      - "host.docker.internal:172.17.0.1"
 
   mysql:
     image: mysql:latest
@@ -20,4 +20,6 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: orders
       MYSQL_ROOT: root
-#
+
+      #SQL
+#create table datapix (id varchar(255), id_pay bigint, created_at varchar(40), expires_at varchar(40), status varchar(30), type varchar(30), amount float, ticket varchar(50), qrcode varchar(255), qrcodebase longtext);

@@ -29,6 +29,10 @@ func (u *RefundUseCase) Execute(IDpay int64) (*OutputRefund, error) {
 		return nil, err
 	}
 
+	if err := u.PixRepositoryUseCase.Update(o); err != nil {
+		return nil, err
+	}
+
 	return &OutputRefund{
 		o.ID,
 		o.IDExternalTransaction,

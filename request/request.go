@@ -54,7 +54,7 @@ func (o *Options) Request() *Response {
 	return &Response{
 		Body:     data,
 		Err:      nil,
-		Response: resp.Request,
+		Response: resp,
 	}
 
 }

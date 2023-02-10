@@ -20,7 +20,10 @@ var (
 
 func (p *InputPix) CreatePix() (*OutputPix, error) {
 
-	expiration := time.Now().Add(p.TimeOfExpiration).Format("2006-01-02T15:04:05.000-07:00")
+	fin := "2006-01-02T15:04:05.000-07:00"
+	fout := "15:04 02/01/2006"
+
+	expiration := time.Now().Add(p.TimeOfExpiration).Format(fin)
 
 	headers := map[string]string{
 		"accept":        "application/json",
@@ -60,11 +63,19 @@ func (p *InputPix) CreatePix() (*OutputPix, error) {
 		return nil, err
 	}
 
+	loc, err := time.LoadLocation("America/Sao_Paulo")
+	if err != nil {
+		return nil, errors.New("error parse location")
+	}
+
+	// fmt.Println(dt.DateCreated)
+	// fmt.Println(dt.DateOfExpiration)
+
 	return &OutputPix{
 		ID:                    p.ID,
 		IDExternalTransaction: dt.ID,
-		CreateAt:              dt.DateCreated,
-		ExpiresAt:             dt.DateOfExpiration,
+		CreateAt:              time.Now().In(loc).Format(fout),
+		ExpiresAt:             time.Now().In(loc).Add(10 * time.Minute).Format(fout),
 		Status:                dt.Status,
 		Type:                  dt.PaymentMethod.ID,
 		Amount:                p.Amount,
@@ -122,6 +133,12 @@ func (p *OutputPix) RefundPix() error {
 	resp := opt.Request()
 	if resp.Err != nil {
 		return resp.Err
+	}
+
+	//	fmt.Println(string(resp.Body))
+
+	if resp.Response.StatusCode == 400 {
+		return errors.New("The action requested is not valid for the current payment state")
 	}
 
 	var rr RefundData

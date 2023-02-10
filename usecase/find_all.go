@@ -6,17 +6,17 @@ import (
 )
 
 type FindAllPixUseCase struct {
-	ServiceUseCase service.PixRepositoryUseCase
+	PixRepositoryUseCase service.PixRepositoryUseCase
 }
 
 func NewFindAllPixUseCase(s service.PixRepositoryUseCase) *FindAllPixUseCase {
 	return &FindAllPixUseCase{
-		ServiceUseCase: s,
+		PixRepositoryUseCase: s,
 	}
 }
 
 func (s FindAllPixUseCase) Execute() ([]*pix.OutputPix, error) {
-	outputs, err := s.ServiceUseCase.GetAll()
+	outputs, err := s.PixRepositoryUseCase.GetAll()
 	if err != nil {
 		return nil, err
 	}

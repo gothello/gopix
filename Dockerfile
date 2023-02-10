@@ -9,11 +9,11 @@ CMD [ "tail", "-f", "/dev/null" ]
 
 
 
-# FROM alpine
+ FROM alpine
 
-# WORKDIR /app
-# COPY --from=buildando /app/gopix /app/
+ WORKDIR /app
+ COPY --from=buildando /app/gopix /app/
 
 
 
-# ENTRYPOINT ./gopix
+CMD [ "tail", "-f", "/dev/null" ]

@@ -16,16 +16,16 @@ type InputPix struct {
 }
 
 type OutputPix struct {
-	ID                    string
-	IDExternalTransaction int64
-	CreateAt              string
-	ExpiresAt             string
-	Status                string
-	Type                  string
-	Amount                float64
-	Ticket                string
-	QrCode                string
-	QrCodeBase64          string
+	ID                    string  `json:"id"`
+	IDExternalTransaction int64   `json:"id_pay"`
+	CreateAt              string  `json:"created_at"`
+	ExpiresAt             string  `json:"expires_at"`
+	Status                string  `json:"status"`
+	Type                  string  `json:"type"`
+	Amount                float64 `json:"amount"`
+	Ticket                string  `json:"ticket"`
+	QrCode                string  `json:"qrcode"`
+	QrCodeBase64          string  `json:"qrcodebase"`
 }
 
 func NewPix(amount float64, desc string, time time.Duration, url, email string) *InputPix {
@@ -40,9 +40,9 @@ func NewPix(amount float64, desc string, time time.Duration, url, email string) 
 }
 
 type RefundData struct {
-	ID        int   `json:"id"`
-	PaymentID int64 `json:"payment_id"`
-	Amount    int   `json:"amount"`
+	ID        int     `json:"id"`
+	PaymentID int64   `json:"payment_id"`
+	Amount    float64 `json:"amount"`
 	Metadata  struct {
 	} `json:"metadata"`
 	Source struct {
