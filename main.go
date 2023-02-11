@@ -1,63 +1,56 @@
 package main
 
 import (
-	"fmt"
+	"database/sql"
 	"log"
+	"net/http"
 
-	pix "github.com/gothello/go-pix-mercado-pago/create-pix"
-	"github.com/gothello/go-pix-mercado-pago/request"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/gothello/go-pix-mercado-pago/service"
+	"github.com/gothello/go-pix-mercado-pago/usecase"
+	"github.com/gothello/go-pix-mercado-pago/web"
 )
-
-func GetMethodsPayments() error {
-	h := map[string]string{
-
-		"accept":        "application/json",
-		"content-type":  "application/json",
-		"Authorization": `Bearer TEST-6812762136376103-020807-45d3ade4692fa87ac9b5b987554b77bf-811772071`,
-	}
-
-	opt := request.NewOptions("GET", "https://api.mercadopago.com/v1/payment_methods", "", 3000, h)
-
-	r := opt.Request()
-	if r.Err != nil {
-		return r.Err
-	}
-
-	//fmt.Println(string(r.Body))
-
-	return nil
-
-}
 
 func main() {
 
-	// p := pix.NewPix(1, "Pagamento dos Serviços", time.Minute*10, "http://google.com.br", "wpsolucoes@gmail.com")
-
-	// output, err := p.CreatePix()
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
-
-	// fmt.Printf("%#v\n", output)
-
-	o := pix.OutputPix{
-		IDExternalTransaction: 54514338755,
-	}
-
-	// ok, err := o.CancelPix()
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
-
-	// fmt.Printf("%v\n", ok)
-
-	ok, err := o.RefundPix()
+	db, err := sql.Open("mysql", "root:root@tcp(172.17.0.1:3306)/orders")
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	fmt.Printf("%v\n", ok)
+	service := service.NewServiceMySql(db)
 
-	// // e, _ := time.Parse("08/02/2023T14:57", "2023-02-08T14:57:22.931-04:00")
-	// fmt.Println(e)
+	create := usecase.NewCreatePixUseCase(service)
+	cancel := usecase.NewCancelUseCase(service)
+	refund := usecase.NewRefundUseCase(service)
+	find := usecase.NewFindPixUseCase(service)
+	findall := usecase.NewFindAllPixUseCase(service)
+
+	h := web.NewPixHandlers(create, cancel, refund, find, findall)
+
+	http.HandleFunc("/create", h.Create)
+	http.HandleFunc("/cancel", h.Cancel)
+	http.HandleFunc("/refund", h.Refund)
+	http.HandleFunc("/find", h.Find)
+	http.HandleFunc("/all", h.FindAll)
+
+	log.Println("api running port 3000")
+
+	if err := http.ListenAndServe(":3000", nil); err != nil {
+		log.Fatalln(err)
+	}
+
+	// out, err := create.Execute(p)
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
+
+	// al, err := getByIdPay.Execute(54548671739)
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
+
+	//fmt.Println(al)
+
+	//fmt.Printf("%#v\n", out)
 }

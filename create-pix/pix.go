@@ -4,20 +4,26 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
+
+	//	"os"
 	"time"
+
+	//	"github.com/gothello/go-pix-mercado-pago/create-pix/service"
 
 	"github.com/gothello/go-pix-mercado-pago/request"
 )
 
 var (
 	BASE_URL   = "https://api.mercadopago.com"
-	SECRET_KEY = os.Getenv("SECRET_KEY")
+	SECRET_KEY = "APP_USR-6812762136376103-020807-d1f289344c1a03ccb01f6c75801acd7a-811772071"
 )
 
 func (p *InputPix) CreatePix() (*OutputPix, error) {
 
-	expiration := time.Now().Add(p.TimeOfExpiration).Format("2006-01-02T15:04:05.000-07:00")
+	fin := "2006-01-02T15:04:05.000-07:00"
+	fout := "15:04 02/01/2006"
+
+	expiration := time.Now().Add(p.TimeOfExpiration).Format(fin)
 
 	headers := map[string]string{
 		"accept":        "application/json",
@@ -49,17 +55,28 @@ func (p *InputPix) CreatePix() (*OutputPix, error) {
 		return nil, r.Err
 	}
 
+	//	fmt.Printf("%#v", string(r.Body))
+
 	var dt ResponseMP
 
 	if err := json.Unmarshal(r.Body, &dt); err != nil {
 		return nil, err
 	}
 
+	loc, err := time.LoadLocation("America/Sao_Paulo")
+	if err != nil {
+		return nil, errors.New("error parse location")
+	}
+
+	// fmt.Println(dt.DateCreated)
+	// fmt.Println(dt.DateOfExpiration)
+
 	return &OutputPix{
 		ID:                    p.ID,
 		IDExternalTransaction: dt.ID,
-		CreateAt:              dt.DateCreated,
-		ExpiresAt:             dt.DateOfExpiration,
+		CreateAt:              time.Now().In(loc).Format(fout),
+		ExpiresAt:             time.Now().In(loc).Add(10 * time.Minute).Format(fout),
+		Status:                dt.Status,
 		Type:                  dt.PaymentMethod.ID,
 		Amount:                p.Amount,
 		Ticket:                dt.PointOfInteraction.TransactionData.TicketURL,
@@ -68,7 +85,7 @@ func (p *InputPix) CreatePix() (*OutputPix, error) {
 	}, nil
 }
 
-func (p *OutputPix) CancelPix() (string, error) {
+func (p *OutputPix) CancelPix() error {
 
 	h := map[string]string{
 		"Authorization": "Bearer " + SECRET_KEY,
@@ -83,23 +100,24 @@ func (p *OutputPix) CancelPix() (string, error) {
 
 	resp := opt.Request()
 	if resp.Err != nil {
-		return "", resp.Err
+		return resp.Err
 	}
 
 	var rm ResponseMP
 
 	if err := json.Unmarshal(resp.Body, &rm); err != nil {
-		return "", err
+		return err
 	}
 
 	if rm.Status == "cancelled" {
-		return fmt.Sprintf("client id %v cancelled transaction payment %v", p.ID, rm.ID), nil
+		p.Status = rm.Status
+		return nil
 	}
 
-	return "", errors.New("error in cancel transaction")
+	return errors.New("error in cancel transaction")
 }
 
-func (p *OutputPix) RefundPix() (string, error) {
+func (p *OutputPix) RefundPix() error {
 
 	h := map[string]string{
 		"Authorization": "Bearer " + SECRET_KEY,
@@ -114,18 +132,25 @@ func (p *OutputPix) RefundPix() (string, error) {
 
 	resp := opt.Request()
 	if resp.Err != nil {
-		return "", resp.Err
+		return resp.Err
+	}
+
+	//	fmt.Println(string(resp.Body))
+
+	if resp.Response.StatusCode == 400 {
+		return errors.New("The action requested is not valid for the current payment state")
 	}
 
 	var rr RefundData
 
 	if err := json.Unmarshal(resp.Body, &rr); err != nil {
-		return "", err
+		return err
 	}
 
-	if rr.Status == "" {
-		return fmt.Sprintf("client id:%v\nrefund:%v\npayment_id:%v", p.ID, rr.PaymentID, rr.AmountRefundedToPayer), nil
+	if rr.Status == "approved" {
+		p.Status = "payment refund"
+		return nil
 	}
 
-	return "", errors.New("error in refund transaction")
+	return errors.New("error in refund transaction")
 }
