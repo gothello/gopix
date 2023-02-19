@@ -10,6 +10,10 @@ import (
 	"github.com/gothello/go-pix-mercado-pago/utils"
 )
 
+var (
+	IDNotExist = "id not exist"
+)
+
 type PixHandlers struct {
 	CreatePixUseCase  *usecase.CreatePixUseCase
 	CancelPixUseCase  *usecase.CancelUseCase
@@ -68,7 +72,7 @@ func (h *PixHandlers) Cancel(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 		if err == sql.ErrNoRows {
-			utils.ToErro(w, "id not exist", http.StatusBadRequest)
+			utils.ToErro(w, IDNotExist, http.StatusBadRequest)
 			return
 		}
 
@@ -95,7 +99,7 @@ func (h *PixHandlers) Refund(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 		if err == sql.ErrNoRows {
-			utils.ToErro(w, "id not exist", http.StatusBadRequest)
+			utils.ToErro(w, IDNotExist, http.StatusBadRequest)
 			return
 		}
 
@@ -137,7 +141,7 @@ func (h *PixHandlers) Find(w http.ResponseWriter, r *http.Request) {
 	out, err := h.FindPixUsecase.Execute(id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			utils.ToErro(w, "id not exist", http.StatusBadRequest)
+			utils.ToErro(w, IDNotExist, http.StatusBadRequest)
 			return
 		}
 		utils.ToErro(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

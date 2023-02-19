@@ -1,19 +1,22 @@
 package usecase
 
-import "github.com/gothello/go-pix-mercado-pago/service"
+import (
+	"github.com/gothello/go-pix-mercado-pago/entity"
+)
 
 type OutputCancel struct {
 	ID     string  `json:"id"`
 	IdPay  int64   `json:"idpay"`
 	Status string  `json:"status"`
 	Amount float64 `json:"amount"`
+	Email  string  `json:"email"`
 }
 
 type CancelUseCase struct {
-	PixRepositoryUseCase service.PixRepositoryUseCase
+	PixRepositoryUseCase entity.PixRepository
 }
 
-func NewCancelUseCase(s service.PixRepositoryUseCase) *CancelUseCase {
+func NewCancelUseCase(s entity.PixRepository) *CancelUseCase {
 	return &CancelUseCase{
 		PixRepositoryUseCase: s,
 	}
@@ -39,5 +42,6 @@ func (u CancelUseCase) Execute(IDpay int64) (*OutputCancel, error) {
 		IdPay:  o.IDExternalTransaction,
 		Status: o.Status,
 		Amount: o.Amount,
+		Email:  o.Email,
 	}, nil
 }

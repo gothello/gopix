@@ -1,0 +1,4 @@
+Queues:
+  CREATE: newpix
+  CREATED: createdpix
+  APPROVED: approved
