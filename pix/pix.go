@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"regexp"
 
 	//	"os"
@@ -14,7 +15,7 @@ import (
 
 var (
 	BASE_URL   = "https://api.mercadopago.com"
-	SECRET_KEY = "APP_USR-5603718645176488-021311-c9e03f6eab82326f933417d74ab081d0-811772071"
+	SECRET_KEY = os.Getenv("SECRET_KEY")
 )
 
 func (p *InputPix) CreatePix() (*OutputPix, error) {
