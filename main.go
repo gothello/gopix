@@ -6,51 +6,58 @@ import (
 	"net/http"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/gothello/go-pix-mercado-pago/service"
+	"github.com/gothello/go-pix-mercado-pago/entity"
+	"github.com/gothello/go-pix-mercado-pago/rabbit"
 	"github.com/gothello/go-pix-mercado-pago/usecase"
 	"github.com/gothello/go-pix-mercado-pago/web"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func main() {
-
-	db, err := sql.Open("mysql", "root:root@tcp(172.17.0.1:3306)/orders")
-	if err != nil {
-		log.Fatalln(err)
+var (
+	QUEUES = map[string]string{
+		"CREATE":   "newpix",
+		"CREATED":  "createdpix",
+		"APPROVED": "approved",
 	}
+)
 
-	service := service.NewServiceMySql(db)
-
+func LoadAllUseCases(service *entity.RespositoryMySql) *web.PixHandlers {
 	create := usecase.NewCreatePixUseCase(service)
 	cancel := usecase.NewCancelUseCase(service)
 	refund := usecase.NewRefundUseCase(service)
 	find := usecase.NewFindPixUseCase(service)
 	findall := usecase.NewFindAllPixUseCase(service)
 
-	h := web.NewPixHandlers(create, cancel, refund, find, findall)
+	handlers := web.NewPixHandlers(create, cancel, refund, find, findall)
 
-	http.HandleFunc("/create", h.Create)
-	http.HandleFunc("/cancel", h.Cancel)
-	http.HandleFunc("/refund", h.Refund)
-	http.HandleFunc("/find", h.Find)
-	http.HandleFunc("/all", h.FindAll)
+	return handlers
+}
 
-	log.Println("api running port 3000")
+func main() {
 
-	if err := http.ListenAndServe(":3000", nil); err != nil {
+	db, err := sql.Open("mysql", "root:root@tcp(localhost:3306)/orders")
+	if err != nil {
 		log.Fatalln(err)
 	}
 
-	// out, err := create.Execute(p)
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
+	defer db.Close()
 
-	// al, err := getByIdPay.Execute(54548671739)
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
+	conn, err := amqp.Dial("amqp://admin:admin@localhost:5672/")
+	if err != nil {
+		log.Println(err)
+	}
 
-	//fmt.Println(al)
+	rep := entity.NewRespositoryMySql(db)
+	handlers := LoadAllUseCases(rep)
+	handlers.LoadRoutes()
 
-	//fmt.Printf("%#v\n", out)
+	rabbitUseCase := usecase.NewRabbitConnectionUseCase(conn, rep)
+	inChan := make(chan rabbit.RabbitInputChan)
+	go rabbit.Consumer(conn, QUEUES["CREATE"], inChan)
+	go rabbitUseCase.RabbitCreatePixUseCase(inChan, rep, QUEUES)
+
+	log.Println("api running port 3000")
+	if err := http.ListenAndServe(":3000", nil); err != nil {
+		log.Fatalln(err)
+	}
 }

@@ -5,13 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"os"
+<<<<<<< HEAD:create-pix/pix.go
+=======
+	"regexp"
+>>>>>>> mysqladd:pix/pix.go
 
 	//	"os"
 	"time"
 
-	//	"github.com/gothello/go-pix-mercado-pago/create-pix/service"
-
-	"github.com/gothello/go-pix-mercado-pago/request"
+	"github.com/gothello/go-pix-mercado-pago/pix/request"
 )
 
 var (
@@ -38,12 +40,6 @@ func (p *InputPix) CreatePix() (*OutputPix, error) {
 		"payment_method_id": "pix",
 		"payer": {
 		  "email": "%s",
-		  "first_name": "Adam Dev",
-		  "last_name": "GOPIX API",
-		  "identification": {
-			"type": "CPF",
-			"number": "01234567890"
-		  }
 		},
 		"date_of_expiration": "%s",
 		"notification_url": "%s"
@@ -56,7 +52,7 @@ func (p *InputPix) CreatePix() (*OutputPix, error) {
 		return nil, r.Err
 	}
 
-	//	fmt.Printf("%#v", string(r.Body))
+	//exportfmt.Printf("%#v", string(r.Body))
 
 	var dt ResponseMP
 
@@ -69,21 +65,23 @@ func (p *InputPix) CreatePix() (*OutputPix, error) {
 		return nil, errors.New("error parse location")
 	}
 
-	// fmt.Println(dt.DateCreated)
-	// fmt.Println(dt.DateOfExpiration)
+	//	fmt.Println(dt)
 
-	return &OutputPix{
+	out := &OutputPix{
 		ID:                    p.ID,
 		IDExternalTransaction: dt.ID,
 		CreateAt:              time.Now().In(loc).Format(fout),
-		ExpiresAt:             time.Now().In(loc).Add(10 * time.Minute).Format(fout),
+		ExpiresAt:             time.Now().In(loc).Add(p.TimeOfExpiration).Format(fout),
 		Status:                dt.Status,
 		Type:                  dt.PaymentMethod.ID,
 		Amount:                p.Amount,
 		Ticket:                dt.PointOfInteraction.TransactionData.TicketURL,
+		Email:                 p.Email,
 		QrCode:                dt.PointOfInteraction.TransactionData.QrCode,
 		QrCodeBase64:          dt.PointOfInteraction.TransactionData.QrCodeBase64,
-	}, nil
+	}
+
+	return out, nil
 }
 
 func (p *OutputPix) CancelPix() error {
@@ -154,4 +152,38 @@ func (p *OutputPix) RefundPix() error {
 	}
 
 	return errors.New("error in refund transaction")
+}
+
+func (o *OutputPix) GetStatusPayment(timeoutRequest int) error {
+	loc, err := time.LoadLocation("America/Sao_Paulo")
+	if err != nil {
+		return errors.New("error parse location")
+	}
+
+	fout := "15:04 02/01/2006"
+
+	opt := request.NewOptions("GET", o.Ticket, "", 0, map[string]string{})
+
+	for {
+		time.Sleep(time.Second * time.Duration(timeoutRequest))
+		if time.Now().In(loc).Format(fout) == o.ExpiresAt {
+			if o.Status == "pending" {
+				return errors.New("client not pay")
+			}
+			break
+		}
+
+		resp := opt.Request()
+		if resp.Err != nil {
+			return resp.Err
+		}
+
+		re := regexp.MustCompile(`<h1 class="ticket__large-text">Este pagamento já foi realizado</h1>`)
+
+		if re.Match(resp.Body) {
+			return errors.New("approved")
+		}
+	}
+
+	return errors.New("client not pay")
 }

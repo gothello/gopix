@@ -1,19 +1,20 @@
 package usecase
 
-import "github.com/gothello/go-pix-mercado-pago/service"
+import "github.com/gothello/go-pix-mercado-pago/entity"
 
 type OutputRefund struct {
 	ID     string  `json:"id"`
 	IdPay  int64   `json:"idpay"`
 	Status string  `json:"status"`
 	Amount float64 `json:"amount"`
+	Email  string  `json:"email"`
 }
 
 type RefundUseCase struct {
-	PixRepositoryUseCase service.PixRepositoryUseCase
+	PixRepositoryUseCase entity.PixRepository
 }
 
-func NewRefundUseCase(s service.PixRepositoryUseCase) *RefundUseCase {
+func NewRefundUseCase(s entity.PixRepository) *RefundUseCase {
 	return &RefundUseCase{
 		PixRepositoryUseCase: s,
 	}
@@ -38,5 +39,6 @@ func (u *RefundUseCase) Execute(IDpay int64) (*OutputRefund, error) {
 		o.IDExternalTransaction,
 		o.Status,
 		o.Amount,
+		o.Email,
 	}, nil
 }

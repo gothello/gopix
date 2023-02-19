@@ -24,6 +24,7 @@ type OutputPix struct {
 	Type                  string  `json:"type"`
 	Amount                float64 `json:"amount"`
 	Ticket                string  `json:"ticket"`
+	Email                 string  `json:"email"`
 	QrCode                string  `json:"qrcode"`
 	QrCodeBase64          string  `json:"qrcodebase"`
 }

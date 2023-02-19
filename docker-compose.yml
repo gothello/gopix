@@ -7,19 +7,34 @@ services:
      - 3000:3000
     volumes: 
       - .:/app/
-    extra_hosts:
-      - "host.docker.internal:172.17.0.1"
+  # nginx:
+  #   image: nginx
+  #   ports:
+  #     - 2000:80
+  #   volumes:
+  #     - ./nginx/:/etc/nginx
+
 
   mysql:
     image: mysql:latest
     ports:
       - 3306:3306
-#    volumes: 
-#      - .:/app/volumes
+    volumes: 
+     - ./mysql-volumes:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: orders
       MYSQL_ROOT: root
 
-      #SQL
-#create table datapix (id varchar(255), id_pay bigint, created_at varchar(40), expires_at varchar(40), status varchar(30), type varchar(30), amount float, ticket varchar(50), qrcode varchar(255), qrcodebase longtext);
+  rabbit:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+    volumes:
+      - ./mnesia:/var/lib/rabbitmq
+
+#create table datapix (id varchar(255), id_pay bigint, created_at varchar(40), expires_at varchar(40), status varchar(30), type varchar(30),  amount float, ticket varchar(160), email varchar(60), qrcode varchar(255), qrcodebase longtext);
