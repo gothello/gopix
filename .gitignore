@@ -1,10 +1,5 @@
-<<<<<<< HEAD
+
 mnesia
 nginx
 .erlang.cookie
 mysql-volumes
-=======
-mysql-volumes
-mnesia
-.erlang.cookie
->>>>>>> mysqladd

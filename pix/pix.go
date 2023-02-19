@@ -5,10 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
-<<<<<<< HEAD:create-pix/pix.go
-=======
-	"regexp"
->>>>>>> mysqladd:pix/pix.go
+"regexp"
 
 	//	"os"
 	"time"
