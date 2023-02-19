@@ -1,3 +1,5 @@
-mysql-volumes
+
 mnesia
+nginx
 .erlang.cookie
+mysql-volumes
