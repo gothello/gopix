@@ -13,7 +13,6 @@ import (
 	"github.com/gothello/go-pix-mercado-pago/rabbit"
 	"github.com/gothello/go-pix-mercado-pago/usecase"
 	"github.com/gothello/go-pix-mercado-pago/utils"
-	"github.com/gothello/go-pix-mercado-pago/web"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -49,18 +48,6 @@ func init() {
 	}
 }
 
-func LoadAllUseCases(service *entity.RespositoryMySql) *web.PixHandlers {
-	create := usecase.NewCreatePixUseCase(service)
-	cancel := usecase.NewCancelUseCase(service)
-	refund := usecase.NewRefundUseCase(service)
-	find := usecase.NewFindPixUseCase(service)
-	findall := usecase.NewFindAllPixUseCase(service)
-
-	handlers := web.NewPixHandlers(create, cancel, refund, find, findall)
-
-	return handlers
-}
-
 func main() {
 
 	db, err := sql.Open("mysql", "root:root@tcp(localhost:3306)/orders")
@@ -76,7 +63,7 @@ func main() {
 	}
 
 	rep := entity.NewRespositoryMySql(db)
-	handlers := LoadAllUseCases(rep)
+	handlers := web.LoadAllUseCases(rep)
 	handlers.LoadRoutes()
 
 	rabbitUseCase := usecase.NewRabbitConnectionUseCase(conn, rep)
