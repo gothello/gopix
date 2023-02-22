@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
-"regexp"
+	"regexp"
 
 	//	"os"
 	"time"
@@ -14,9 +15,15 @@ import (
 )
 
 var (
-	BASE_URL   = "https://api.mercadopago.com"
-	SECRET_KEY = os.Getenv("SECRET_KEY")
+	BASE_URL      = "https://api.mercadopago.com"
+	SECRET_KEY_MP = os.Getenv("SECRET_KEY")
 )
+
+func init() {
+	if SECRET_KEY_MP == "" {
+		log.Fatalln("error key to access in api is invalid")
+	}
+}
 
 func (p *InputPix) CreatePix() (*OutputPix, error) {
 
@@ -28,7 +35,7 @@ func (p *InputPix) CreatePix() (*OutputPix, error) {
 	headers := map[string]string{
 		"accept":        "application/json",
 		"content-type":  "application/json",
-		"Authorization": `Bearer ` + SECRET_KEY,
+		"Authorization": `Bearer ` + SECRET_KEY_MP,
 	}
 
 	body := fmt.Sprintf(`{
@@ -84,7 +91,7 @@ func (p *InputPix) CreatePix() (*OutputPix, error) {
 func (p *OutputPix) CancelPix() error {
 
 	h := map[string]string{
-		"Authorization": "Bearer " + SECRET_KEY,
+		"Authorization": "Bearer " + SECRET_KEY_MP,
 		"Content-Type":  "application/json",
 	}
 
@@ -116,7 +123,7 @@ func (p *OutputPix) CancelPix() error {
 func (p *OutputPix) RefundPix() error {
 
 	h := map[string]string{
-		"Authorization": "Bearer " + SECRET_KEY,
+		"Authorization": "Bearer " + SECRET_KEY_MP,
 		"Content-Type":  "application/json",
 	}
 

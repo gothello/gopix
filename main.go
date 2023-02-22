@@ -19,7 +19,13 @@ var (
 		"CREATED":  "createdpix",
 		"APPROVED": "approved",
 	}
+
+	API_PORT        = ""
+	SECRET_AUTH_KEY = ""
 )
+
+func init() {
+}
 
 func LoadAllUseCases(service *entity.RespositoryMySql) *web.PixHandlers {
 	create := usecase.NewCreatePixUseCase(service)
