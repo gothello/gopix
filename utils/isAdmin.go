@@ -6,15 +6,15 @@ import (
 )
 
 var (
-	SecureKey = "ok"
+	SECRET_AUTH_KEY = ""
 )
 
 func IsAdmin(handler func(w http.ResponseWriter, h *http.Request)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		re := regexp.MustCompile("Baerer " + SecureKey)
+		re := regexp.MustCompile("Baerer " + SECRET_AUTH_KEY)
 		auth := r.Header.Get("Authorization")
 
-		if !re.Match([]byte(auth)) {
+		if !re.MatchString(auth) {
 			ToErro(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 			return
 		}

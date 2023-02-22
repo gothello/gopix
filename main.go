@@ -2,13 +2,17 @@ package main
 
 import (
 	"database/sql"
+	"flag"
+	"fmt"
 	"log"
 	"net/http"
 
+	"github.com/fatih/color"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gothello/go-pix-mercado-pago/entity"
 	"github.com/gothello/go-pix-mercado-pago/rabbit"
 	"github.com/gothello/go-pix-mercado-pago/usecase"
+	"github.com/gothello/go-pix-mercado-pago/utils"
 	"github.com/gothello/go-pix-mercado-pago/web"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -25,6 +29,24 @@ var (
 )
 
 func init() {
+	flag.StringVar(&API_PORT, "port", "3000", "api port to running api")
+	flag.StringVar(&SECRET_AUTH_KEY, "secret", "", "key to authorization access on api")
+	flag.Parse()
+
+	if SECRET_AUTH_KEY == "" {
+		var err error
+
+		SECRET_AUTH_KEY, err = utils.GenerateAuthAcess()
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		utils.SECRET_AUTH_KEY = SECRET_AUTH_KEY
+
+		color.Red("YOU NOT PREDEFINED KEY")
+		color.Green("SYSTEM GENERATE KEY FOR YOU")
+		color.Green(SECRET_AUTH_KEY)
+	}
 }
 
 func LoadAllUseCases(service *entity.RespositoryMySql) *web.PixHandlers {
@@ -63,7 +85,7 @@ func main() {
 	go rabbitUseCase.RabbitCreatePixUseCase(inChan, rep, QUEUES)
 
 	log.Println("api running port 3000")
-	if err := http.ListenAndServe(":3000", nil); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%s", API_PORT), nil); err != nil {
 		log.Fatalln(err)
 	}
 }
