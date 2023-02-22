@@ -16,12 +16,12 @@ import (
 
 var (
 	BASE_URL      = "https://api.mercadopago.com"
-	SECRET_KEY_MP = os.Getenv("SECRET_KEY")
+	SECRET_KEY_MP = os.Getenv("SECRET_KEY_MP")
 )
 
 func init() {
 	if SECRET_KEY_MP == "" {
-		log.Fatalln("error key to access in api is invalid")
+		log.Fatalln("error key to access api Mercado Pago is empty")
 	}
 }
 

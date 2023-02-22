@@ -84,7 +84,7 @@ func main() {
 	go rabbit.Consumer(conn, QUEUES["CREATE"], inChan)
 	go rabbitUseCase.RabbitCreatePixUseCase(inChan, rep, QUEUES)
 
-	log.Println("api running port 3000")
+	log.Printf("api running port %s\n", API_PORT)
 	if err := http.ListenAndServe(fmt.Sprintf(":%s", API_PORT), nil); err != nil {
 		log.Fatalln(err)
 	}
