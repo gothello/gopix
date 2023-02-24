@@ -28,10 +28,7 @@ type RabbitOutputPix struct {
 	Email        string  `json:"email"`
 	QrCode       string  `json:"qrcode"`
 	QrCodeBase64 string  `json:"qrcodebase"`
-}
-
-type RabbitOutputError struct {
-	Error error `json:"error"`
+	Error        error   `json:"error"`
 }
 
 type RabbitInputChan struct {
@@ -59,11 +56,11 @@ func (r *RabbitConnectionUseCase) RabbitCreatePixUseCase(in chan rabbit.RabbitIn
 			err := rabbit.Publish(
 				r.Conn,
 				queues["CREATED"],
-				&RabbitOutputError{Error: i.Error},
+				&RabbitOutputPix{Error: i.Error},
 			)
 
 			if err != nil {
-				log.Fatalf("erro to publish message error: %s\n", err.Error())
+				log.Printf("erro to publish message error: %s\n", err)
 			}
 
 			continue
@@ -77,7 +74,7 @@ func (r *RabbitConnectionUseCase) RabbitCreatePixUseCase(in chan rabbit.RabbitIn
 			err := rabbit.Publish(
 				r.Conn,
 				queues["CREATED"],
-				&RabbitOutputError{Error: i.Error},
+				&RabbitOutputPix{Error: i.Error},
 			)
 			if err != nil {
 				log.Fatalf("erro to publish message error: %s\n", err.Error())
@@ -91,7 +88,7 @@ func (r *RabbitConnectionUseCase) RabbitCreatePixUseCase(in chan rabbit.RabbitIn
 			err := rabbit.Publish(
 				r.Conn,
 				queues["CREATED"],
-				&RabbitOutputError{Error: errors.New("email not informed")},
+				&RabbitOutputPix{Error: errors.New("email not informed")},
 			)
 
 			if err != nil {
@@ -120,7 +117,7 @@ func (r *RabbitConnectionUseCase) RabbitCreatePixUseCase(in chan rabbit.RabbitIn
 			err := rabbit.Publish(
 				r.Conn,
 				queues["CREATED"],
-				&RabbitOutputError{Error: err},
+				&RabbitOutputPix{Error: err},
 			)
 
 			if err != nil {
@@ -136,7 +133,7 @@ func (r *RabbitConnectionUseCase) RabbitCreatePixUseCase(in chan rabbit.RabbitIn
 			err := rabbit.Publish(
 				r.Conn,
 				queues["CREATED"],
-				&RabbitOutputError{Error: err},
+				&RabbitOutputPix{Error: err},
 			)
 
 			if err != nil {

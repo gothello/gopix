@@ -68,9 +68,17 @@ func main() {
 
 	rabbitUseCase := usecase.NewRabbitConnectionUseCase(conn, rep)
 
-	input := make(chan rabbit.RabbitInputChan)
-	go rabbit.Consumer(conn, QUEUES["CREATE"], input)
-	go rabbitUseCase.RabbitCreatePixUseCase(input, rep, QUEUES)
+	icreate := make(chan rabbit.RabbitInputChan)
+	icancel := make(chan rabbit.RabbitInputChan)
+	irefund := make(chan rabbit.RabbitInputChan)
+
+	go rabbit.Consumer(conn, QUEUES["CREATE"], icreate)
+	go rabbit.Consumer(conn, QUEUES["CANCEL"], icancel)
+	go rabbit.Consumer(conn, QUEUES["REFUND"], irefund)
+
+	go rabbitUseCase.RabbitCreatePixUseCase(icreate, rep, QUEUES)
+	go rabbitUseCase.RabbitCancelPixUseCase(icancel, rep, QUEUES)
+	go rabbitUsecase.RabbitRefundPixUseCase(irefund, rep, QUEUES)
 
 	log.Printf("api running port %s\n", API_PORT)
 	if err := http.ListenAndServe(fmt.Sprintf(":%s", API_PORT), nil); err != nil {

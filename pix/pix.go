@@ -169,13 +169,14 @@ func (o *OutputPix) GetStatusPayment(timeoutRequest int) error {
 	opt := request.NewOptions("GET", o.Ticket, "", 0, map[string]string{})
 
 	for {
-		time.Sleep(time.Second * time.Duration(timeoutRequest))
 		if time.Now().In(loc).Format(fout) == o.ExpiresAt {
 			if o.Status == "pending" {
 				return errors.New("client not pay")
 			}
-			break
+			return errors.New("client not pay")
 		}
+
+		time.Sleep(time.Second * time.Duration(timeoutRequest))
 
 		resp := opt.Request()
 		if resp.Err != nil {
@@ -188,6 +189,4 @@ func (o *OutputPix) GetStatusPayment(timeoutRequest int) error {
 			return errors.New("approved")
 		}
 	}
-
-	return errors.New("client not pay")
 }
