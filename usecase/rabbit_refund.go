@@ -21,7 +21,7 @@ type RabbitOutputRefund struct {
 	Error  error
 }
 
-func (r *RabbitConnectionUseCase) RabbiRefundPixUseCase(input chan rabbit.RabbitInputChan, repository entity.PixRepository, queues map[string]string) {
+func (r *RabbitConnectionUseCase) RabbitRefundPixUseCase(input chan rabbit.RabbitInputChan, repository entity.PixRepository, queues map[string]string) {
 	for i := range input {
 		if i.Error != nil {
 			log.Println(i.Error)

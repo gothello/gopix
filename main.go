@@ -15,6 +15,7 @@ import (
 	"github.com/gothello/go-pix-mercado-pago/utils"
 	"github.com/gothello/go-pix-mercado-pago/web"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/rs/cors"
 )
 
 var (
@@ -78,7 +79,13 @@ func main() {
 
 	go rabbitUseCase.RabbitCreatePixUseCase(icreate, rep, QUEUES)
 	go rabbitUseCase.RabbitCancelPixUseCase(icancel, rep, QUEUES)
-	go rabbitUsecase.RabbitRefundPixUseCase(irefund, rep, QUEUES)
+	go rabbitUseCase.RabbitRefundPixUseCase(irefund, rep, QUEUES)
+
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+	})
+
+	c.Handler(http.DefaultServeMux)
 
 	log.Printf("api running port %s\n", API_PORT)
 	if err := http.ListenAndServe(fmt.Sprintf(":%s", API_PORT), nil); err != nil {
