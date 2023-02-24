@@ -20,9 +20,13 @@ import (
 
 var (
 	QUEUES = map[string]string{
-		"CREATE":   "newpix",
-		"CREATED":  "createdpix",
-		"APPROVED": "approved",
+		"CREATE":    "newpix",
+		"CREATED":   "createdpix",
+		"APPROVED":  "approved",
+		"CANCEL":    "AAA",
+		"CANCELLED": "AAA",
+		"REFUND":    "AAA",
+		"REFUNDED":  "AAA",
 	}
 
 	API_PORT        = os.Getenv("API_PORT")
