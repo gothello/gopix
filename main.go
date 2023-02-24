@@ -2,10 +2,10 @@ package main
 
 import (
 	"database/sql"
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/fatih/color"
 	_ "github.com/go-sql-driver/mysql"
@@ -13,6 +13,7 @@ import (
 	"github.com/gothello/go-pix-mercado-pago/rabbit"
 	"github.com/gothello/go-pix-mercado-pago/usecase"
 	"github.com/gothello/go-pix-mercado-pago/utils"
+	"github.com/gothello/go-pix-mercado-pago/web"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -23,14 +24,11 @@ var (
 		"APPROVED": "approved",
 	}
 
-	API_PORT        = ""
-	SECRET_AUTH_KEY = ""
+	API_PORT        = os.Getenv("API_PORT")
+	SECRET_AUTH_KEY = os.Getenv("SECRET_AUTH_KEY")
 )
 
 func init() {
-	flag.StringVar(&API_PORT, "port", "3000", "api port to running api")
-	flag.StringVar(&SECRET_AUTH_KEY, "secret", "", "key to authorization access on api")
-	flag.Parse()
 
 	if SECRET_AUTH_KEY == "" {
 		var err error
@@ -44,32 +42,35 @@ func init() {
 
 		color.Red("YOU NOT PREDEFINED KEY")
 		color.Green("SYSTEM GENERATE KEY FOR YOU")
-		color.Green(SECRET_AUTH_KEY)
+		color.Green("KEY AUTH SAVED ON /HOME %s", SECRET_AUTH_KEY)
 	}
 }
 
 func main() {
 
-	db, err := sql.Open("mysql", "root:root@tcp(localhost:3306)/orders")
+	db, err := sql.Open("mysql", "root:root@tcp(mysql:3306)/orders")
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	defer db.Close()
 
-	conn, err := amqp.Dial("amqp://admin:admin@localhost:5672/")
+	conn, err := amqp.Dial("amqp://admin:admin@rabbit:5672/")
 	if err != nil {
 		log.Println(err)
 	}
+
+	defer conn.Close()
 
 	rep := entity.NewRespositoryMySql(db)
 	handlers := web.LoadAllUseCases(rep)
 	handlers.LoadRoutes()
 
 	rabbitUseCase := usecase.NewRabbitConnectionUseCase(conn, rep)
-	inChan := make(chan rabbit.RabbitInputChan)
-	go rabbit.Consumer(conn, QUEUES["CREATE"], inChan)
-	go rabbitUseCase.RabbitCreatePixUseCase(inChan, rep, QUEUES)
+
+	input := make(chan rabbit.RabbitInputChan)
+	go rabbit.Consumer(conn, QUEUES["CREATE"], input)
+	go rabbitUseCase.RabbitCreatePixUseCase(input, rep, QUEUES)
 
 	log.Printf("api running port %s\n", API_PORT)
 	if err := http.ListenAndServe(fmt.Sprintf(":%s", API_PORT), nil); err != nil {

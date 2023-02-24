@@ -46,6 +46,11 @@ func (h *PixHandlers) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if input.Email == "" {
+		utils.ToErro(w, "email not is empty", http.StatusBadRequest)
+		return
+	}
+
 	out, err := h.CreatePixUseCase.Execute(input)
 	if err != nil {
 		log.Println(err)
