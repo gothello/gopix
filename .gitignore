@@ -2,3 +2,7 @@ mnesia
 nginx
 .erlang.cookie
 mysql-volumes
+
+SECRET_KEY_API
+SECRET_MERCADO_PAGO
+
