@@ -1,21 +1,18 @@
-version: '3'
+version: "3.9"
 
-services: 
-  goapp: 
+services:
+  app:
     build: .
     ports:
-     - 3000:3000
-    volumes: 
-      - .:/app/
-    networks:
-      - default
-  # nginx:
-  #   image: nginx
-  #   ports:
-  #     - 2000:80
-  #   volumes:
-  #     - ./nginx/:/etc/nginx
+      - "4000:4000"
+    restart: always
 
+  nginx:
+    image: nginx
+    ports:
+      - "2000:80"
+    volumes:
+     - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
 
   mysql:
     image: mysql:latest
@@ -38,6 +35,5 @@ services:
       - RABBITMQ_DEFAULT_PASS=admin
     volumes:
       - ./mnesia:/var/lib/rabbitmq
-    hostname: localhost
 
 #create table datapix (id varchar(255), id_pay bigint, created_at varchar(40), expires_at varchar(40), status varchar(30), type varchar(30),  amount float, ticket varchar(160), email varchar(60), qrcode varchar(255), qrcodebase longtext);

@@ -9,7 +9,9 @@ import (
 
 	"github.com/fatih/color"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gothello/go-pix-mercado-pago/config"
 	"github.com/gothello/go-pix-mercado-pago/entity"
+	"github.com/gothello/go-pix-mercado-pago/pix"
 	"github.com/gothello/go-pix-mercado-pago/rabbit"
 	"github.com/gothello/go-pix-mercado-pago/usecase"
 	"github.com/gothello/go-pix-mercado-pago/utils"
@@ -19,50 +21,62 @@ import (
 )
 
 var (
-	QUEUES = map[string]string{
-		"CREATE":    "newpix",
-		"CREATED":   "createdpix",
-		"APPROVED":  "approved",
-		"CANCEL":    "AAA",
-		"CANCELLED": "AAA",
-		"REFUND":    "AAA",
-		"REFUNDED":  "AAA",
-	}
+	API_PORT = 0
 
-	API_PORT        = os.Getenv("API_PORT")
-	SECRET_AUTH_KEY = os.Getenv("SECRET_AUTH_KEY")
+	RABBITMQ = map[string]string{}
+	QUEUES   = map[string]string{}
+	MYSQL    = map[string]string{}
+
+	BASE_URL_RABBITMQ = "amqp://%s:%s@%s:%s/"
+	BASE_URL_MYSQL    = "%s:%s@tcp(%s:%s)/%s"
 )
 
 func init() {
-
-	if SECRET_AUTH_KEY == "" {
-		var err error
-
-		SECRET_AUTH_KEY, err = utils.GenerateAuthAcess()
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		utils.SECRET_AUTH_KEY = SECRET_AUTH_KEY
-
-		color.Red("YOU NOT PREDEFINED KEY")
-		color.Green("SYSTEM GENERATE KEY FOR YOU")
-		color.Green("KEY AUTH SAVED ON /HOME %s", SECRET_AUTH_KEY)
+	conf, err := config.LoadConfig()
+	if err != nil {
+		color.Red("ERROR: ", err)
+		os.Exit(0)
 	}
+
+	if conf.GetString("SECRET_KEY_API") == "" {
+		color.Red("ERROR: you not define you secret key to permit access on api")
+		os.Exit(0)
+	}
+
+	utils.SECRET_AUTH_KEY = conf.GetString("SECRET_KEY_API")
+
+	if conf.GetString("SECRET_MERCADO_PAGO") == "" {
+		color.Red("ERROR: you not define secret key to permit access on api MERCADO PAGO")
+		os.Exit(0)
+	}
+
+	pix.SECRET_KEY_MP = conf.GetString("SECRET_MERCADO_PAGO")
+
+	MYSQL = conf.GetStringMapString("MYSQL")
+	RABBITMQ = conf.GetStringMapString("RABBITMQ")
+	QUEUES = conf.GetStringMapString("QUEUES")
+
+	if conf.GetInt("API_PORT") != 0 {
+		API_PORT = conf.GetInt("API_PORT")
+		return
+	}
+
+	API_PORT = 4000
+
 }
 
 func main() {
 
-	db, err := sql.Open("mysql", "root:root@tcp(mysql:3306)/orders")
+	db, err := sql.Open("mysql", fmt.Sprintf(BASE_URL_MYSQL, MYSQL["user"], MYSQL["pass"], MYSQL["host"], MYSQL["port"], MYSQL["databse"]))
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("ERRO: open connection mysql")
 	}
 
 	defer db.Close()
 
-	conn, err := amqp.Dial("amqp://admin:admin@rabbit:5672/")
+	conn, err := amqp.Dial(fmt.Sprintf(BASE_URL_RABBITMQ, RABBITMQ["user"], RABBITMQ["pass"], RABBITMQ["host"], RABBITMQ["port"]))
 	if err != nil {
-		log.Println(err)
+		log.Fatalln("ERRO: open connection rabbitmq")
 	}
 
 	defer conn.Close()
@@ -77,9 +91,9 @@ func main() {
 	icancel := make(chan rabbit.RabbitInputChan)
 	irefund := make(chan rabbit.RabbitInputChan)
 
-	go rabbit.Consumer(conn, QUEUES["CREATE"], icreate)
-	go rabbit.Consumer(conn, QUEUES["CANCEL"], icancel)
-	go rabbit.Consumer(conn, QUEUES["REFUND"], irefund)
+	go rabbit.Consumer(conn, QUEUES["create"], icreate)
+	go rabbit.Consumer(conn, QUEUES["cancel"], icancel)
+	go rabbit.Consumer(conn, QUEUES["refund"], irefund)
 
 	go rabbitUseCase.RabbitCreatePixUseCase(icreate, rep, QUEUES)
 	go rabbitUseCase.RabbitCancelPixUseCase(icancel, rep, QUEUES)
@@ -91,8 +105,8 @@ func main() {
 
 	c.Handler(http.DefaultServeMux)
 
-	log.Printf("api running port %s\n", API_PORT)
-	if err := http.ListenAndServe(fmt.Sprintf(":%s", API_PORT), nil); err != nil {
+	log.Printf("api running port %d\n", API_PORT)
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", API_PORT), nil); err != nil {
 		log.Fatalln(err)
 	}
 }

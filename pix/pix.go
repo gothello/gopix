@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
-	"os"
 	"regexp"
 
 	//	"os"
@@ -16,14 +14,8 @@ import (
 
 var (
 	BASE_URL      = "https://api.mercadopago.com"
-	SECRET_KEY_MP = os.Getenv("SECRET_KEY_MP")
+	SECRET_KEY_MP = ""
 )
-
-func init() {
-	if SECRET_KEY_MP == "" {
-		log.Fatalln("error key to access api Mercado Pago is empty")
-	}
-}
 
 func (p *InputPix) CreatePix() (*OutputPix, error) {
 
