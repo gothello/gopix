@@ -9,6 +9,8 @@ import (
 func WebHookNotify() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
+		// if r.Host != {}
+
 		if r.Method != http.MethodPost {
 
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)

@@ -12,6 +12,8 @@ import (
 
 var (
 	IDNotExist = "id not exist"
+	EmailEmpty = "email is empty"
+	Empty      = ""
 )
 
 type PixHandlers struct {
@@ -46,8 +48,8 @@ func (h *PixHandlers) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if input.Email == "" {
-		utils.ToErro(w, "email not is empty", http.StatusBadRequest)
+	if input.Email == Empty {
+		utils.ToErro(w, EmailEmpty, http.StatusBadRequest)
 		return
 	}
 
