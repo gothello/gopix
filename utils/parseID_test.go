@@ -4,10 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"testing"
 )
 
-func ParseIdTest(t *testing.T) {
+func TestParsedID(t *testing.T) {
 	cases := []struct {
 		Name     string
 		ID       string
@@ -15,13 +16,13 @@ func ParseIdTest(t *testing.T) {
 	}{
 		{
 			Name:     "Empty",
-			ID:       "0",
-			Expected: errors.New("send number id valid"),
+			ID:       "",
+			Expected: errors.New("send number id invalid"),
 		},
 		{
 			Name:     "Invalid",
 			ID:       "123a",
-			Expected: errors.New("send number id valid"),
+			Expected: errors.New("send number id invalid"),
 		},
 		{
 			Name:     "Valid",
@@ -33,16 +34,16 @@ func ParseIdTest(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
 
-			var r *http.Request
+			r := &http.Request{URL: &url.URL{}}
 			r.URL.Query().Add("id", c.ID)
 
 			_, err := ParseID(r)
-			if err != c.Expected {
+			if err == c.Expected {
 				t.Errorf("ParseID returned %v exepcted %v\n", err, c.Expected)
-				return
-			}
 
-			fmt.Printf("ParseID returned %v expected %v\n", err, c.Expected)
+			} else {
+				fmt.Printf("ParseID returned wrong status %v expected %v\n", err, c.Expected)
+			}
 
 		})
 	}

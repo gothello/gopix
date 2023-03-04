@@ -67,16 +67,16 @@ func init() {
 
 func main() {
 
-	db, err := sql.Open("mysql", fmt.Sprintf(BASE_URL_MYSQL, MYSQL["user"], MYSQL["pass"], MYSQL["host"], MYSQL["port"], MYSQL["databse"]))
+	db, err := sql.Open("mysql", fmt.Sprintf(BASE_URL_MYSQL, MYSQL["user"], MYSQL["pass"], MYSQL["host"], MYSQL["port"], MYSQL["database"]))
 	if err != nil {
-		log.Fatalln("ERRO: open connection mysql")
+		log.Fatalf("ERRO: open connection mysql: %v\n", err)
 	}
 
 	defer db.Close()
 
 	conn, err := amqp.Dial(fmt.Sprintf(BASE_URL_RABBITMQ, RABBITMQ["user"], RABBITMQ["pass"], RABBITMQ["host"], RABBITMQ["port"]))
 	if err != nil {
-		log.Fatalln("ERRO: open connection rabbitmq")
+		log.Fatalf("ERRO: open connection rabbitmq: %v\n", err)
 	}
 
 	defer conn.Close()

@@ -6,6 +6,6 @@
 
 ## Necessario:
 - Conhecimentos basicos docker
-- Docker instalado.
+- Docker instalado na maquina.
 
 ## Configuração:

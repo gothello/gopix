@@ -2,6 +2,10 @@ package config
 
 import "github.com/spf13/viper"
 
+//LoadConfig is function to load files in one archive YML.
+//If success create new viper instancer e erro nil.
+//If error occurred return nil and error.
+
 func LoadConfig() (*viper.Viper, error) {
 	viper := viper.GetViper()
 
