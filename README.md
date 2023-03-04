@@ -8,4 +8,4 @@
 - Conhecimentos basicos docker
 - Docker instalado.
 
-##Configuração
+## Configuração:
