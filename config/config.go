@@ -6,10 +6,14 @@ import "github.com/spf13/viper"
 //If success create new viper instancer e erro nil.
 //If error occurred return nil and error.
 
+var (
+	PATH = "./"
+)
+
 func LoadConfig() (*viper.Viper, error) {
 	viper := viper.GetViper()
 
-	viper.AddConfigPath("./")
+	viper.AddConfigPath(PATH)
 	viper.SetConfigName("config")
 	viper.SetConfigType("yml")
 

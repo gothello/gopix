@@ -86,6 +86,7 @@ func main() {
 	handlers.LoadRoutes()
 
 	rabbitUseCase := usecase.NewRabbitConnectionUseCase(conn, rep)
+	usecase.NETIFY_CONNECTION = conn
 
 	icreate := make(chan rabbit.RabbitInputChan)
 	icancel := make(chan rabbit.RabbitInputChan)

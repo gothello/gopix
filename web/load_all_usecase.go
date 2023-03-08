@@ -11,8 +11,9 @@ func LoadAllUseCases(service *entity.RespositoryMySql) *PixHandlers {
 	refund := usecase.NewRefundUseCase(service)
 	find := usecase.NewFindPixUseCase(service)
 	findall := usecase.NewFindAllPixUseCase(service)
+	webhook := usecase.NewNotifyPixUseCase(service)
 
-	handlers := NewPixHandlers(create, cancel, refund, find, findall)
+	handlers := NewPixHandlers(create, cancel, refund, find, findall, webhook)
 
 	return handlers
 }

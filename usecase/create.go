@@ -53,6 +53,10 @@ func (s CreatePixUseCase) Execute(input InputPix) (*OutputPix, error) {
 		return nil, errors.New("email not informed")
 	}
 
+	if input.UrlNotify == "" {
+		input.UrlNotify = "https://fea6-170-245-238-18.sa.ngrok.io/notify"
+	}
+
 	//tranform type input pacakge usecase into *pix.InputPix
 	i := &pix.InputPix{
 		ID:               uuid.New().String(),
@@ -73,34 +77,6 @@ func (s CreatePixUseCase) Execute(input InputPix) (*OutputPix, error) {
 	if err := s.PixRepositoryUseCase.Insert(output); err != nil {
 		return nil, err
 	}
-
-	//this goroutine check status payment e update database status
-	go func() error {
-		//output = output
-		if err := output.GetStatusPayment(20); err != nil {
-			if err.Error() == "client not pay" {
-				output.Status = "cancelled"
-				if err := s.PixRepositoryUseCase.Update(output); err != nil {
-					return err
-				}
-
-				if err := output.CancelPix(); err != nil {
-					return err
-				}
-			}
-
-			if err.Error() == "approved" {
-				output.Status = "approved"
-				if err := s.PixRepositoryUseCase.Update(output); err != nil {
-					return err
-				}
-			}
-
-			return err
-		}
-
-		return nil
-	}()
 
 	//return data information of transaction
 	return &OutputPix{

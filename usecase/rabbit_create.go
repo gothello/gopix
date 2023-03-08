@@ -92,7 +92,7 @@ func (r *RabbitConnectionUseCase) RabbitCreatePixUseCase(in chan rabbit.RabbitIn
 			)
 
 			if err != nil {
-				log.Fatalln("erro to publish message: email not informed")
+				log.Fatalln("erro to publish message in rabbitmq: email not informed")
 			}
 
 			continue
@@ -107,7 +107,7 @@ func (r *RabbitConnectionUseCase) RabbitCreatePixUseCase(in chan rabbit.RabbitIn
 			Amount:           input.Amount,
 			Description:      input.Description,
 			TimeOfExpiration: time.Duration(input.ExpirationMinutes) * time.Minute,
-			UrlNotify:        input.UrlNotify,
+			UrlNotify:        "https://fea6-170-245-238-18.sa.ngrok.io/notify",
 			Email:            input.Email,
 		}
 
@@ -127,50 +127,6 @@ func (r *RabbitConnectionUseCase) RabbitCreatePixUseCase(in chan rabbit.RabbitIn
 			continue
 		}
 
-		//save in database sql
-		if err := r.PixRepositoryUseCase.Insert(output); err != nil {
-			log.Println(err)
-			err := rabbit.Publish(
-				r.Conn,
-				queues["CREATED"],
-				&RabbitOutputPix{Error: err},
-			)
-
-			if err != nil {
-				log.Fatalf("erro to publish message error: %s\n", err.Error())
-			}
-
-			continue
-		}
-
-		go func() {
-			if err := output.GetStatusPayment(20); err != nil {
-				if err.Error() == "client not pay" {
-					output.Status = "cancelled"
-					if err := r.PixRepositoryUseCase.Update(output); err != nil {
-						log.Println("error into update status transcation to cancelled")
-					}
-
-					if err := output.CancelPix(); err != nil {
-						log.Println("error to cancel transaction")
-					}
-				}
-
-				if err.Error() == "approved" {
-					output.Status = "approved"
-					if err := r.PixRepositoryUseCase.Update(output); err != nil {
-						log.Println("error into update status transcation to approved")
-					}
-
-					go func() {
-						if err := rabbit.Publish(r.Conn, queues["APPROVED"], output); err != nil {
-							log.Println("error into publish approved transaction in queue approved")
-						}
-					}()
-				}
-			}
-		}()
-
 		err = rabbit.Publish(r.Conn, queues["CREATED"], &RabbitOutputPix{
 			ID:           output.ID,
 			IDPAY:        output.IDExternalTransaction,
@@ -186,6 +142,22 @@ func (r *RabbitConnectionUseCase) RabbitCreatePixUseCase(in chan rabbit.RabbitIn
 
 		if err != nil {
 			log.Printf("erro to publish output transcation in queue: %s\n", err.Error())
+		}
+
+		//save in database sql
+		if err := r.PixRepositoryUseCase.Insert(output); err != nil {
+			log.Println(err)
+			err := rabbit.Publish(
+				r.Conn,
+				queues["CREATED"],
+				&RabbitOutputPix{Error: err},
+			)
+
+			if err != nil {
+				log.Fatalf("erro to publish message error: %s\n", err.Error())
+			}
+
+			continue
 		}
 	}
 }

@@ -1,18 +1,18 @@
 API_PORT: 4000
 
-SECRET_KEY_API: "ok"
+SECRET_KEY_API: "6551d24c-c2ac-4be4-8599-8b772e727bc4"
 SECRET_MERCADO_PAGO: "APP_USR-5603718645176488-021311-c9e03f6eab82326f933417d74ab081d0-811772071"
 
 RABBITMQ:
   USER: "admin"
   PASS: "admin"
-  HOST: "rabbit"
+  HOST: "localhost"
   PORT: "5672"
 
 MYSQL:
   USER: "root"
   PASS: "root"
-  HOST: "mysql"
+  HOST: "localhost"
   PORT: "3306"
   DATABASE: "orders"
 

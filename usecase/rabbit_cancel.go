@@ -86,6 +86,19 @@ func (r *RabbitConnectionUseCase) RabbitCancelPixUseCase(input chan rabbit.Rabbi
 			continue
 		}
 
+		err = rabbit.Publish(
+			r.Conn,
+			queues["CANCELLED"],
+			&RabbitOutputCancel{
+				ID:     o.ID,
+				IDPAY:  o.IDExternalTransaction,
+				Status: o.Status,
+				Amount: o.Amount,
+				Email:  o.Email,
+				Error:  nil,
+			},
+		)
+
 		if err := r.PixRepositoryUseCase.Update(o); err != nil {
 			log.Println(err)
 			err := rabbit.Publish(
@@ -100,19 +113,6 @@ func (r *RabbitConnectionUseCase) RabbitCancelPixUseCase(input chan rabbit.Rabbi
 
 			continue
 		}
-
-		err = rabbit.Publish(
-			r.Conn,
-			queues["CANCELLED"],
-			&RabbitOutputCancel{
-				ID:     o.ID,
-				IDPAY:  o.IDExternalTransaction,
-				Status: o.Status,
-				Amount: o.Amount,
-				Email:  o.Email,
-				Error:  nil,
-			},
-		)
 
 		if err != nil {
 			if err != nil {

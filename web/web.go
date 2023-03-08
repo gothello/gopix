@@ -3,6 +3,7 @@ package web
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -22,15 +23,17 @@ type PixHandlers struct {
 	RefundPixUseCase  *usecase.RefundUseCase
 	FindPixUsecase    *usecase.FindPixUseCase
 	FindAllPixUseCase *usecase.FindAllPixUseCase
+	NotifyPixUseCase  *usecase.NotifyPixUseCase
 }
 
-func NewPixHandlers(create *usecase.CreatePixUseCase, cancel *usecase.CancelUseCase, refund *usecase.RefundUseCase, find *usecase.FindPixUseCase, findall *usecase.FindAllPixUseCase) *PixHandlers {
+func NewPixHandlers(create *usecase.CreatePixUseCase, cancel *usecase.CancelUseCase, refund *usecase.RefundUseCase, find *usecase.FindPixUseCase, findall *usecase.FindAllPixUseCase, notify *usecase.NotifyPixUseCase) *PixHandlers {
 	return &PixHandlers{
 		CreatePixUseCase:  create,
 		CancelPixUseCase:  cancel,
 		RefundPixUseCase:  refund,
 		FindPixUsecase:    find,
 		FindAllPixUseCase: findall,
+		NotifyPixUseCase:  notify,
 	}
 }
 
@@ -156,4 +159,39 @@ func (h *PixHandlers) Find(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.ToJson(w, out, http.StatusOK)
+}
+
+func (h *PixHandlers) WebHook(w http.ResponseWriter, r *http.Request) {
+	var response map[string]interface{}
+
+	if err := json.NewDecoder(r.Body).Decode(&response); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	action, ok := response["action"].(string)
+	if !ok {
+		return
+	}
+
+	if action == "payment.updated" {
+		data, ok := response["data"].(map[string]interface{})
+		if !ok {
+			return
+		}
+
+		idpay, ok := data["id"]
+		if !ok {
+			return
+		}
+
+		go func() {
+
+			if err := h.NotifyPixUseCase.Execute(idpay.(string)); err != nil {
+				log.Println(err)
+			}
+		}()
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

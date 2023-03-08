@@ -12,4 +12,5 @@ func (h *PixHandlers) LoadRoutes() {
 	http.HandleFunc("/refund", utils.IsAdmin(h.Refund))
 	http.HandleFunc("/find", utils.IsAdmin(h.Find))
 	http.HandleFunc("/all", utils.IsAdmin(h.FindAll))
+	http.HandleFunc("/notify", h.WebHook)
 }

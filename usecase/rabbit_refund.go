@@ -86,21 +86,6 @@ func (r *RabbitConnectionUseCase) RabbitRefundPixUseCase(input chan rabbit.Rabbi
 			continue
 		}
 
-		if err := r.PixRepositoryUseCase.Update(o); err != nil {
-			log.Println(err)
-			err := rabbit.Publish(
-				r.Conn,
-				queues["REFUNDED"],
-				&RabbitOutputRefund{Error: err},
-			)
-
-			if err != nil {
-				log.Printf("erro to publish message error: %s\n", err)
-			}
-
-			continue
-		}
-
 		err = rabbit.Publish(
 			r.Conn,
 			queues["REFUNDED"],
@@ -118,5 +103,21 @@ func (r *RabbitConnectionUseCase) RabbitRefundPixUseCase(input chan rabbit.Rabbi
 			log.Printf("erro to publish output transcation in queue: %s\n", err.Error())
 
 		}
+
+		if err := r.PixRepositoryUseCase.Update(o); err != nil {
+			log.Println(err)
+			err := rabbit.Publish(
+				r.Conn,
+				queues["REFUNDED"],
+				&RabbitOutputRefund{Error: err},
+			)
+
+			if err != nil {
+				log.Printf("erro to publish message error: %s\n", err)
+			}
+
+			continue
+		}
+
 	}
 }

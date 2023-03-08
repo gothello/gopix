@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"regexp"
 
 	//	"os"
 	"time"
@@ -13,8 +12,9 @@ import (
 )
 
 var (
-	BASE_URL      = "https://api.mercadopago.com"
-	SECRET_KEY_MP = ""
+	BASE_URL        = "https://api.mercadopago.com"
+	SECRET_KEY_MP   = ""
+	ENDPOINT_NOTIFY = ""
 )
 
 func (p *InputPix) CreatePix() (*OutputPix, error) {
@@ -48,12 +48,12 @@ func (p *InputPix) CreatePix() (*OutputPix, error) {
 		return nil, r.Err
 	}
 
-	//exportfmt.Printf("%#v", string(r.Body))
+	// fmt.Printf("%#v", string(r.Body))
 
 	var dt ResponseMP
 
 	if err := json.Unmarshal(r.Body, &dt); err != nil {
-		return nil, err
+		return nil, errors.New("Erro to unmarshal response mercado pago: " + err.Error())
 	}
 
 	loc, err := time.LoadLocation("America/Sao_Paulo")
@@ -132,10 +132,6 @@ func (p *OutputPix) RefundPix() error {
 
 	//	fmt.Println(string(resp.Body))
 
-	if resp.Response.StatusCode == 400 {
-		return errors.New("The action requested is not valid for the current payment state")
-	}
-
 	var rr RefundData
 
 	if err := json.Unmarshal(resp.Body, &rr); err != nil {
@@ -148,37 +144,4 @@ func (p *OutputPix) RefundPix() error {
 	}
 
 	return errors.New("error in refund transaction")
-}
-
-func (o *OutputPix) GetStatusPayment(timeoutRequest int) error {
-	loc, err := time.LoadLocation("America/Sao_Paulo")
-	if err != nil {
-		return errors.New("error parse location")
-	}
-
-	fout := "15:04 02/01/2006"
-
-	opt := request.NewOptions("GET", o.Ticket, "", 0, map[string]string{})
-
-	for {
-		if time.Now().In(loc).Format(fout) == o.ExpiresAt {
-			if o.Status == "pending" {
-				return errors.New("client not pay")
-			}
-			return errors.New("client not pay")
-		}
-
-		time.Sleep(time.Second * time.Duration(timeoutRequest))
-
-		resp := opt.Request()
-		if resp.Err != nil {
-			return resp.Err
-		}
-
-		re := regexp.MustCompile(`<h1 class="ticket__large-text">Este pagamento já foi realizado</h1>`)
-
-		if re.Match(resp.Body) {
-			return errors.New("approved")
-		}
-	}
 }
